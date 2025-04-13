@@ -134,9 +134,6 @@ class DelegateControllerTest extends WebTestCase
         
         // If there's a validation error, the form will be redisplayed
         if ($this->client->getResponse()->getStatusCode() === Response::HTTP_OK) {
-            $html = $this->client->getResponse()->getContent();
-            // Save HTML to file for debugging
-            file_put_contents('/tmp/form_debug.html', $html);
             $this->fail('Form submission did not redirect but returned HTTP 200. See /tmp/form_debug.html for details.');
         }
         
