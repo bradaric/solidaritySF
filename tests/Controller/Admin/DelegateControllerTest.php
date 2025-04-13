@@ -121,7 +121,7 @@ class DelegateControllerTest extends WebTestCase
     public function testConnectSchoolAccessibleByAdmin(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user from fixtures
         $user = $this->getDelegateUser();
         $userId = $user->getId();
@@ -135,7 +135,7 @@ class DelegateControllerTest extends WebTestCase
     public function testConnectSchoolFormSubmission(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user from fixtures
         $user = $this->getDelegateUser();
         $userId = $user->getId();
@@ -150,13 +150,13 @@ class DelegateControllerTest extends WebTestCase
 
         // Check if we were redirected back to the connect page
         $this->assertTrue($this->client->getResponse()->isRedirect("/admin/delegate/{$userId}/connect-school"));
-        
+
         // Follow redirect
         $this->client->followRedirect();
-        
+
         // Check for success flash message
         $this->assertSelectorExists('.alert-success');
-        
+
         // Check the flash message content - Note: This is a bug in the controller
         // It says "odvezali" (disconnected) when it should say "povezali" (connected)
         $flashContent = $this->client->getCrawler()->filter('.alert-success')->text();
@@ -167,14 +167,14 @@ class DelegateControllerTest extends WebTestCase
             'user' => $user,
             'school' => $school,
         ]);
-        
+
         $this->assertNotNull($connection);
     }
-    
+
     public function testConnectSchoolToNonDelegateUser(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a regular user (not a delegate)
         $regularUser = $this->userRepository->createQueryBuilder('u')
             ->where('u.roles NOT LIKE :role')
@@ -184,17 +184,17 @@ class DelegateControllerTest extends WebTestCase
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-            
+
         $this->assertNotNull($regularUser, 'No regular user found in fixtures');
         $userId = $regularUser->getId();
-        
+
         // Configure client to not catch exceptions so we can handle them manually
         $this->client->catchExceptions(false);
-        
+
         try {
             // This should throw an access denied exception
             $this->client->request('GET', "/admin/delegate/{$userId}/connect-school");
-            
+
             // If we get here (no exception), still check for HTTP 403
             $this->assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
         } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException $e) {
@@ -208,25 +208,25 @@ class DelegateControllerTest extends WebTestCase
             $this->client->catchExceptions(true);
         }
     }
-    
+
     public function testConnectSchoolToInactiveDelegateUser(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate and set them as inactive
         $delegate = $this->getDelegateUser();
         $delegate->setIsActive(false);
         $this->entityManager->flush();
-        
+
         $userId = $delegate->getId();
-        
+
         // Configure client to not catch exceptions so we can handle them manually
         $this->client->catchExceptions(false);
-        
+
         try {
             // This should throw an access denied exception
             $this->client->request('GET', "/admin/delegate/{$userId}/connect-school");
-            
+
             // If we get here (no exception), still check for HTTP 403
             $this->assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
         } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException $e) {
@@ -240,22 +240,22 @@ class DelegateControllerTest extends WebTestCase
             $this->client->catchExceptions(true);
         }
     }
-    
+
     public function testUnconnectSchoolWithoutId(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user
         $user = $this->getDelegateUser();
         $userId = $user->getId();
-        
+
         // Configure client to not catch exceptions so we can handle them manually
         $this->client->catchExceptions(false);
-        
+
         try {
             // This should throw a not found exception
             $this->client->request('GET', "/admin/delegate/{$userId}/unconect-school");
-            
+
             // If we get here (no exception), still check for HTTP 404
             $this->assertEquals(Response::HTTP_NOT_FOUND, $this->client->getResponse()->getStatusCode());
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
@@ -269,25 +269,25 @@ class DelegateControllerTest extends WebTestCase
             $this->client->catchExceptions(true);
         }
     }
-    
+
     public function testUnconnectSchoolWithInvalidId(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user
         $user = $this->getDelegateUser();
         $userId = $user->getId();
-        
+
         // Use a non-existent ID
         $nonExistentId = 99999;
-        
+
         // Configure client to not catch exceptions so we can handle them manually
         $this->client->catchExceptions(false);
-        
+
         try {
             // This should throw a not found exception
             $this->client->request('GET', "/admin/delegate/{$userId}/unconect-school?user-delegate-school-id={$nonExistentId}");
-            
+
             // If we get here (no exception), still check for HTTP 404
             $this->assertEquals(Response::HTTP_NOT_FOUND, $this->client->getResponse()->getStatusCode());
         } catch (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e) {
@@ -301,11 +301,11 @@ class DelegateControllerTest extends WebTestCase
             $this->client->catchExceptions(true);
         }
     }
-    
+
     public function testUnconnectSchoolBelongingToDifferentUser(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get two different delegate users
         $delegates = $this->userRepository->createQueryBuilder('u')
             ->where('u.roles LIKE :role')
@@ -315,32 +315,34 @@ class DelegateControllerTest extends WebTestCase
             ->setMaxResults(2)
             ->getQuery()
             ->getResult();
-        
+
         // If we don't have two delegates, create a test scenario
         if (count($delegates) < 2) {
             $this->markTestSkipped('Need at least 2 delegates for this test');
+
             return;
         }
-        
+
         $delegate1 = $delegates[0];
         $delegate2 = $delegates[1];
-        
+
         // Get a connection for delegate 1
         $connection = $this->getUserDelegateSchoolConnection($delegate1);
         if (!$connection) {
             $this->markTestSkipped('No school connection found for delegate user');
+
             return;
         }
-        
+
         $connectionId = $connection->getId();
-        
+
         // Configure client to not catch exceptions so we can handle them manually
         $this->client->catchExceptions(false);
-        
+
         try {
             // This should throw an access denied exception
             $this->client->request('GET', "/admin/delegate/{$delegate2->getId()}/unconect-school?user-delegate-school-id={$connectionId}");
-            
+
             // If we get here (no exception), still check for HTTP 403
             $this->assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
         } catch (\Symfony\Component\Security\Core\Exception\AccessDeniedException $e) {
@@ -361,11 +363,11 @@ class DelegateControllerTest extends WebTestCase
         $user = $this->getDelegateUser();
         $userId = $user->getId();
         $connection = $this->getUserDelegateSchoolConnection($user);
-        
+
         if (!$connection) {
             $this->markTestSkipped('No school connection found for delegate user');
         }
-        
+
         $connectionId = $connection->getId();
 
         $this->client->request('GET', "/admin/delegate/{$userId}/unconect-school?user-delegate-school-id={$connectionId}");
@@ -389,16 +391,16 @@ class DelegateControllerTest extends WebTestCase
     public function testUnconnectSchoolAccessibleByAdmin(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user and connected school
         $user = $this->getDelegateUser();
         $userId = $user->getId();
         $connection = $this->getUserDelegateSchoolConnection($user);
-        
+
         if (!$connection) {
             $this->markTestSkipped('No school connection found for delegate user');
         }
-        
+
         $connectionId = $connection->getId();
 
         $this->client->request('GET', "/admin/delegate/{$userId}/unconect-school?user-delegate-school-id={$connectionId}");
@@ -410,16 +412,16 @@ class DelegateControllerTest extends WebTestCase
     public function testUnconnectSchoolFormSubmission(): void
     {
         $this->loginAsAdmin();
-        
+
         // Get a delegate user and connected school
         $user = $this->getDelegateUser();
         $userId = $user->getId();
         $connection = $this->getUserDelegateSchoolConnection($user);
-        
+
         if (!$connection) {
             $this->markTestSkipped('No school connection found for delegate user');
         }
-        
+
         $connectionId = $connection->getId();
 
         $this->client->request('GET', "/admin/delegate/{$userId}/unconect-school?user-delegate-school-id={$connectionId}");
@@ -429,14 +431,14 @@ class DelegateControllerTest extends WebTestCase
 
         // Check if we were redirected back to the connect page
         $this->assertTrue($this->client->getResponse()->isRedirect("/admin/delegate/{$userId}/connect-school"));
-        
+
         // Follow redirect
         $this->client->followRedirect();
-        
+
         // Check for success flash message
         $this->assertSelectorExists('.alert-success');
 
-        // Check the flash message content 
+        // Check the flash message content
         $flashContent = $this->client->getCrawler()->filter('.alert-success')->text();
         $this->assertStringContainsString('odvezali', $flashContent, 'Flash message should indicate disconnecting a school');
 
@@ -460,7 +462,7 @@ class DelegateControllerTest extends WebTestCase
             ->getOneOrNullResult();
 
         $this->assertNotNull($delegateUser, 'No delegate user found in fixtures');
-        
+
         return $delegateUser;
     }
 
@@ -476,9 +478,9 @@ class DelegateControllerTest extends WebTestCase
             ->setParameter('user', $user)
             ->getQuery()
             ->getResult();
-        
+
         $connectedSchoolIds = array_column($connectedSchoolIds, 1);
-        
+
         // Find a school that's not in this list
         $unconnectedSchool = $this->schoolRepository->createQueryBuilder('s')
             ->where('s.id NOT IN (:ids)')
@@ -486,9 +488,9 @@ class DelegateControllerTest extends WebTestCase
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-            
+
         $this->assertNotNull($unconnectedSchool, 'No unconnected school found');
-        
+
         return $unconnectedSchool;
     }
 
