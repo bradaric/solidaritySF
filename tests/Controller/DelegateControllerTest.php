@@ -149,24 +149,24 @@ class DelegateControllerTest extends WebTestCase
         // Follow redirect and check success message
         $this->client->followRedirect();
         $this->assertSelectorExists('.alert-success');
-        
+
         // Verify the educator was actually saved in the database
         $container = static::getContainer();
         $entityManager = $container->get('doctrine.orm.entity_manager');
         $educatorRepository = $entityManager->getRepository('App\Entity\Educator');
-        
+
         // Clear entity manager to ensure we get fresh data
         $entityManager->clear();
-        
+
         // Find the educator by its unique name
         $savedEducator = $educatorRepository->findOneBy(['name' => $uniqueName]);
-        
+
         // Verify that the educator exists and has the correct data
         $this->assertNotNull($savedEducator, 'Educator was not saved to the database');
         $this->assertEquals($testAmount, $savedEducator->getAmount(), 'Saved amount does not match the submitted value');
         $this->assertEquals($testAccountNumber, $savedEducator->getAccountNumber(), 'Saved account number does not match the submitted value');
         $this->assertEquals($schoolId, $savedEducator->getSchool()->getId(), 'Saved school does not match the submitted value');
-        
+
         // Verify that the creator is set to the current user
         $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
         $this->assertEquals($delegate->getId(), $savedEducator->getCreatedBy()->getId(), 'CreatedBy field was not set correctly');
@@ -650,7 +650,7 @@ class DelegateControllerTest extends WebTestCase
     }
 
     /**
-     * Test for pending delegate request.
+     * Test for delegate request form submission and database validation.
      */
     public function testPendingDelegateRequest(): void
     {
@@ -661,7 +661,13 @@ class DelegateControllerTest extends WebTestCase
         // Make sure we have a city, school type, and school
         $cityRepository = $entityManager->getRepository('App\Entity\City');
         $schoolRepository = $entityManager->getRepository('App\Entity\School');
+        $userDelegateRequestRepository = $entityManager->getRepository('App\Entity\UserDelegateRequest');
+
         $city = $cityRepository->findOneBy(['name' => 'Novi Sad']);
+        if (!$city) {
+            $city = $cityRepository->findOneBy([]);
+        }
+
         $school = $schoolRepository->findOneBy(['city' => $city]);
         $schoolType = $school->getType();
 
@@ -678,6 +684,12 @@ class DelegateControllerTest extends WebTestCase
             ->getQuery()
             ->getResult()[0];
 
+        // If the user already has a delegate request, remove it for clean testing
+        if ($testUser->getUserDelegateRequest()) {
+            $entityManager->remove($testUser->getUserDelegateRequest());
+            $entityManager->flush();
+        }
+
         // Log the user we found
         $this->client->loginUser($testUser);
 
@@ -690,30 +702,53 @@ class DelegateControllerTest extends WebTestCase
         // Now fill in and submit the form
         $form = $crawler->filter('form')->form();
 
-        $form['registration_delegate[phone]'] = '0601234567';
+        // Test data with unique identifiers
+        $testPhone = '0601234567';
+        $testTotalEducators = 123;
+        $testTotalBlockedEducators = 45;
+        $testComment = 'Test comment '.uniqid();
+
+        $form['registration_delegate[phone]'] = $testPhone;
         $form['registration_delegate[city]'] = $city->getId();
         $form['registration_delegate[schoolType]'] = $schoolType->getId();
         $form['registration_delegate[school]'] = $school->getId();
-        $form['registration_delegate[totalEducators]'] = '100';
-        $form['registration_delegate[totalBlockedEducators]'] = '50';
+        $form['registration_delegate[totalEducators]'] = $testTotalEducators;
+        $form['registration_delegate[totalBlockedEducators]'] = $testTotalBlockedEducators;
+        $form['registration_delegate[comment]'] = $testComment;
 
         // Submit the completed form
         $this->client->submit($form);
 
         // Check for redirect (successful submission)
-        if ($this->client->getResponse()->isRedirect()) {
-            $this->client->followRedirect();
-        }
+        $this->assertTrue($this->client->getResponse()->isRedirect(),
+            'Form submission did not redirect: '.$this->client->getResponse()->getStatusCode());
 
-        // Get the HTML content for debugging
-        $content = $this->client->getResponse()->getContent();
+        $this->client->followRedirect();
 
         // Now verify we can see a successful response
         $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        $this->assertStringContainsString('Vaš zahtev za delegata je poslat administratorima',
+            $this->client->getResponse()->getContent());
 
-        // Save final content for debugging
-        @file_put_contents('/tmp/form_final.html', $content);
-        $this->assertStringContainsString('Vaš zahtev za delegata je poslat administratorima', $content);
+        // Verify the data was saved to the database
+        $entityManager->clear(); // Clear entity manager to ensure we get fresh data
+
+        // Find the delegate request in the database
+        $delegateRequest = $userDelegateRequestRepository->findOneBy(['user' => $testUser]);
+
+        // Assert the request exists and has correct data
+        $this->assertNotNull($delegateRequest, 'Delegate request was not saved to the database');
+        $this->assertEquals($testPhone, $delegateRequest->getPhone(), 'Phone number was not saved correctly');
+        $this->assertEquals($testComment, $delegateRequest->getComment(), 'Comment was not saved correctly');
+        $this->assertEquals($testTotalEducators, $delegateRequest->getTotalEducators(), 'Total educators count was not saved correctly');
+        $this->assertEquals($testTotalBlockedEducators, $delegateRequest->getTotalBlockedEducators(), 'Blocked educators count was not saved correctly');
+        $this->assertEquals($city->getId(), $delegateRequest->getCity()->getId(), 'City was not saved correctly');
+        $this->assertEquals($schoolType->getId(), $delegateRequest->getSchoolType()->getId(), 'School type was not saved correctly');
+        $this->assertEquals($school->getId(), $delegateRequest->getSchool()->getId(), 'School was not saved correctly');
+        $this->assertEquals(1, $delegateRequest->getStatus(), 'Status should be set to 1 (NEW)');
+
+        // Verify that the user is still connected to the request
+        $this->assertSame($testUser->getId(), $delegateRequest->getUser()->getId(), 'User association is incorrect');
     }
 
     /**
