@@ -125,10 +125,15 @@ class DelegateControllerTest extends WebTestCase
             $this->markTestSkipped('No school options available for this delegate');
         }
 
-        $form['educator_edit[name]'] = 'Test Educator';
+        // Generate a unique name to easily identify this test record
+        $uniqueName = 'Test Educator '.uniqid();
+        $testAmount = 50000;
+        $testAccountNumber = '265104031000361092';
+
+        $form['educator_edit[name]'] = $uniqueName;
         $form['educator_edit[school]'] = $schoolId;
-        $form['educator_edit[amount]'] = '50000';
-        $form['educator_edit[accountNumber]'] = '265104031000361092';
+        $form['educator_edit[amount]'] = $testAmount;
+        $form['educator_edit[accountNumber]'] = $testAccountNumber;
 
         $this->client->submit($form);
 
@@ -144,6 +149,27 @@ class DelegateControllerTest extends WebTestCase
         // Follow redirect and check success message
         $this->client->followRedirect();
         $this->assertSelectorExists('.alert-success');
+        
+        // Verify the educator was actually saved in the database
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        $educatorRepository = $entityManager->getRepository('App\Entity\Educator');
+        
+        // Clear entity manager to ensure we get fresh data
+        $entityManager->clear();
+        
+        // Find the educator by its unique name
+        $savedEducator = $educatorRepository->findOneBy(['name' => $uniqueName]);
+        
+        // Verify that the educator exists and has the correct data
+        $this->assertNotNull($savedEducator, 'Educator was not saved to the database');
+        $this->assertEquals($testAmount, $savedEducator->getAmount(), 'Saved amount does not match the submitted value');
+        $this->assertEquals($testAccountNumber, $savedEducator->getAccountNumber(), 'Saved account number does not match the submitted value');
+        $this->assertEquals($schoolId, $savedEducator->getSchool()->getId(), 'Saved school does not match the submitted value');
+        
+        // Verify that the creator is set to the current user
+        $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        $this->assertEquals($delegate->getId(), $savedEducator->getCreatedBy()->getId(), 'CreatedBy field was not set correctly');
     }
 
     /**
