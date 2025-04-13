@@ -134,7 +134,7 @@ class DelegateControllerTest extends WebTestCase
 
         // If there's a validation error, the form will be redisplayed
         if (Response::HTTP_OK === $this->client->getResponse()->getStatusCode()) {
-            $this->fail('Form submission did not redirect but returned HTTP 200. See /tmp/form_debug.html for details.');
+            $this->fail('Form submission did not redirect but returned HTTP 200.');
         }
 
         // Check for any redirect (might not be exactly to /osteceni)
@@ -171,22 +171,10 @@ class DelegateControllerTest extends WebTestCase
         // Create city if it doesn't exist
         $cityRepository = $entityManager->getRepository('App\Entity\City');
         $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
 
         // Create school type if it doesn't exist
         $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
         $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
 
         // Create test school
         $school = new \App\Entity\School();
@@ -237,25 +225,11 @@ class DelegateControllerTest extends WebTestCase
         $container = static::getContainer();
         $entityManager = $container->get('doctrine.orm.entity_manager');
 
-        // Create city if it doesn't exist
         $cityRepository = $entityManager->getRepository('App\Entity\City');
         $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
 
-        // Create school type if it doesn't exist
         $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
         $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
 
         // Create test school
         $school = new \App\Entity\School();
@@ -309,22 +283,8 @@ class DelegateControllerTest extends WebTestCase
         $cityRepository = $entityManager->getRepository('App\Entity\City');
         $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
 
-        // Get or create a city
         $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-        }
-
-        // Get or create a school type
         $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush(); // Flush to save these entities first
-        }
 
         // Create a new school that's NOT linked to our delegate
         $school = new \App\Entity\School();
@@ -394,22 +354,8 @@ class DelegateControllerTest extends WebTestCase
             $cityRepository = $entityManager->getRepository('App\Entity\City');
             $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
 
-            // Get or create a city
             $city = $cityRepository->findOneBy([]);
-            if (!$city) {
-                $city = new \App\Entity\City();
-                $city->setName('Test City');
-                $entityManager->persist($city);
-            }
-
-            // Get or create a school type
             $schoolType = $schoolTypeRepository->findOneBy([]);
-            if (!$schoolType) {
-                $schoolType = new \App\Entity\SchoolType();
-                $schoolType->setName('Test School Type');
-                $entityManager->persist($schoolType);
-                $entityManager->flush();
-            }
 
             // Create a new school for the delegate
             $school = new \App\Entity\School();
@@ -449,22 +395,8 @@ class DelegateControllerTest extends WebTestCase
         $container = static::getContainer();
         $entityManager = $container->get('doctrine.orm.entity_manager');
 
-        // Create city, school type, school directly
         $city = $entityManager->getRepository('App\Entity\City')->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
-
         $schoolType = $entityManager->getRepository('App\Entity\SchoolType')->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
 
         // Create a dedicated school for this test
         $school = new \App\Entity\School();
@@ -529,22 +461,8 @@ class DelegateControllerTest extends WebTestCase
         $container = static::getContainer();
         $entityManager = $container->get('doctrine.orm.entity_manager');
 
-        // Create city, school type, school directly
         $city = $entityManager->getRepository('App\Entity\City')->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
-
         $schoolType = $entityManager->getRepository('App\Entity\SchoolType')->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
 
         // Create a dedicated school for this test
         $school = new \App\Entity\School();
@@ -682,34 +600,9 @@ class DelegateControllerTest extends WebTestCase
         $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
         $schoolRepository = $entityManager->getRepository('App\Entity\School');
 
-        // Get or create city
         $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
-
-        // Get or create school type
         $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
-
-        // Get or create school
         $school = $schoolRepository->findOneBy(['city' => $city]);
-        if (!$school) {
-            $school = new \App\Entity\School();
-            $school->setName('Test Form School');
-            $school->setCity($city);
-            $school->setType($schoolType);
-            $entityManager->persist($school);
-            $entityManager->flush();
-        }
 
         // Use existing user to avoid the complexity of creating a proper user
         $testUser = $this->userRepository->findOneBy(['email' => 'korisnik@gmail.com']);
@@ -741,67 +634,60 @@ class DelegateControllerTest extends WebTestCase
 
         // Make sure we have a city, school type, and school
         $cityRepository = $entityManager->getRepository('App\Entity\City');
-        $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
         $schoolRepository = $entityManager->getRepository('App\Entity\School');
-
-        // Get or create city
-        $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
-
-        // Get or create school type
-        $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
-
-        // Get or create school
+        $city = $cityRepository->findOneBy(['name' => 'Novi Sad']);
         $school = $schoolRepository->findOneBy(['city' => $city]);
-        if (!$school) {
-            $school = new \App\Entity\School();
-            $school->setName('Test Form School');
-            $school->setCity($city);
-            $school->setType($schoolType);
-            $entityManager->persist($school);
-            $entityManager->flush();
-        }
+        $schoolType = $school->getType();
 
-        // Get or create a regular user
-        $user = $this->userRepository->findOneBy(['email' => 'korisnik@gmail.com']);
+        // Use existing regular user
+        $testUser = $this->userRepository
+            ->createQueryBuilder('u')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%ROLE_USER%')
+            ->andWhere('u.roles NOT LIKE :admin')
+            ->andWhere('u.roles NOT LIKE :delegate')
+            ->setParameter('admin', '%ROLE_ADMIN%')
+            ->setParameter('delegate', '%ROLE_DELEGATE%')
+            ->setMaxResults(1) // Get a random user
+            ->getQuery()
+            ->getResult()[0];
 
-        // Create a delegate request for this user if it doesn't exist
-        if (!$user->getUserDelegateRequest()) {
-            $delegateRequest = new \App\Entity\UserDelegateRequest();
-            $delegateRequest->setUser($user);
-            $delegateRequest->setPhone('0601234567');
-            // In the entity, STATUS_NEW = 1 and default value, we'll set it explicitly
-            $delegateRequest->setStatus(\App\Entity\UserDelegateRequest::STATUS_NEW);
-            $delegateRequest->setSchoolType($schoolType);
-            $delegateRequest->setCity($city);
-            $delegateRequest->setSchool($school);
-            $delegateRequest->setTotalEducators(100);
-            $delegateRequest->setTotalBlockedEducators(50);
-
-            $entityManager->persist($delegateRequest);
-            $entityManager->flush();
-        }
-
-        // Login as this user
-        $this->client->loginUser($user);
+        // Log the user we found
+        $this->client->loginUser($testUser);
 
         // Visit the request page
-        $this->client->request('GET', '/postani-delegat');
+        $crawler = $this->client->request('GET', '/postani-delegat');
 
-        // Verify that we see the "request already exists" template
+        // Verify we get a successful response
         $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
-        $this->assertSelectorExists('.card-body');
+
+        // Now fill in and submit the form
+        $form = $crawler->filter('form')->form();
+
+        $form['registration_delegate[phone]'] = '0601234567';
+        $form['registration_delegate[city]'] = $city->getId();
+        $form['registration_delegate[schoolType]'] = $schoolType->getId();
+        $form['registration_delegate[school]'] = $school->getId();
+        $form['registration_delegate[totalEducators]'] = '100';
+        $form['registration_delegate[totalBlockedEducators]'] = '50';
+
+        // Submit the completed form
+        $this->client->submit($form);
+
+        // Check for redirect (successful submission)
+        if ($this->client->getResponse()->isRedirect()) {
+            $this->client->followRedirect();
+        }
+
+        // Get the HTML content for debugging
+        $content = $this->client->getResponse()->getContent();
+
+        // Now verify we can see a successful response
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+
+        // Save final content for debugging
+        @file_put_contents('/tmp/form_final.html', $content);
+        $this->assertStringContainsString('Vaš zahtev za delegata je poslat administratorima', $content);
     }
 
     /**
@@ -821,21 +707,7 @@ class DelegateControllerTest extends WebTestCase
 
         // Create city if it doesn't exist
         $city = $cityRepository->findOneBy([]);
-        if (!$city) {
-            $city = new \App\Entity\City();
-            $city->setName('Test City');
-            $entityManager->persist($city);
-            $entityManager->flush();
-        }
-
-        // Create school type if it doesn't exist
         $schoolType = $schoolTypeRepository->findOneBy([]);
-        if (!$schoolType) {
-            $schoolType = new \App\Entity\SchoolType();
-            $schoolType->setName('Test School Type');
-            $entityManager->persist($schoolType);
-            $entityManager->flush();
-        }
 
         // Create a dedicated school for this test
         $school = new \App\Entity\School();
