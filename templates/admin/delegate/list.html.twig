@@ -1,0 +1,60 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block content %}
+    {{ include('flashes.html.twig') }}
+
+    {% form_theme form with ['form.html.twig', 'form_inline.html.twig'] %}
+    {{ form(form) }}
+
+    <div class="overflow-x-auto mt-6">
+        <div class="text-gray-500 mb-2">
+            Ukupno rezultata: <span class="font-bold">{{ delegates.total }}</span>
+        </div>
+
+        <table class="table rounded-xl border border-base-200">
+            <thead class="bg-gray-100">
+                <tr>
+                    <th>
+                        <span class="ti ti-user text-xl"></span>
+                        Ime
+                    </th>
+                    <th>
+                        <span class="ti ti-link text-xl"></span>
+                        Povezanih škola
+                    </th>
+                    <th>
+                        <span class="ti ti-calendar-event text-xl"></span>
+                        Registrovan
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for delegate in delegates.items %}
+                <tr class="hover:bg-gray-100">
+                    <td>
+                        <div>{{ delegate.fullName ?? user.username }}</div>
+                        <a href="{{ path('admin_user_edit', { 'id': delegate.id }) }}" class="link link-primary link-hover">
+                            {{ delegate.email }}
+                        </a>
+                    </td>
+                    <td>{{ delegate.userDelegateSchools|length }}</td>
+                    <td>
+                        {{ delegate.createdAt|date('d.m.Y.') }}
+                    </td>
+                    <td>
+                        <div class="flex gap-2 justify-end">
+                            <a href="{{ path('admin_delegate_connect_school', { 'id': delegate.id }) }}" class="btn btn-primary btn-sm flex tooltip" data-tip="Poveži">
+                                <span class="ti ti-link-plus text-xl"></span>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% import "macro.twig" as macro %}
+    {{ macro.pagination('admin_delegate_list', delegates.total_pages, delegates.current_page) }}
+{% endblock %}

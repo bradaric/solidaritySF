@@ -1,7 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="card card-lg bg-base-100 shadow m-10">
+    {% import "macro.twig" as macro %}
+    {{ macro.back('donor_subscribe') }}
+
+    <div class="card card-lg bg-base-100 shadow m-10 mt-0">
         <div class="card-body">
             <h2 class="card-title mb-4">
                 <span class="ti ti-user-heart text-3xl"></span>
@@ -11,9 +14,9 @@
             <p>Hvala vam što ste postali deo Mreže solidarnosti.</p>
             <p>Vaša podrška znači mnogo svim našim prosvetnim radnicima. 💙</p>
 
-            <div class="mt-2">
+            <div class="mt-4">
                 <p class="font-bold">Imate pitanje?</p>
-                <p>Tu smo za vas: <a href="mailto:donatori@mrezasolidarnosti.org" class="link link-primary no-underline">donatori@mrezasolidarnosti.org</a></p>
+                <p>Kontaktirajte nas na adresi: <a href="mailto:donatori@mrezasolidarnosti.org" class="link link-primary link-hover">donatori@mrezasolidarnosti.org</a></p>
             </div>
         </div>
     </div>

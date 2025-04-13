@@ -1,7 +1,10 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-    <div class="card card-lg bg-base-100 shadow m-10">
+    {% import "macro.twig" as macro %}
+    {{ macro.back('home') }}
+
+    <div class="card card-lg bg-base-100 shadow m-10 mt-0">
         <div class="card-body">
             <h2 class="card-title mb-4">
                 <span class="ti ti-user text-2xl"></span>
@@ -13,13 +16,6 @@
             <div>
                 {% form_theme form 'form.html.twig' %}
                 {{ form(form) }}
-            </div>
-
-            <div class="card-actions justify-end">
-                <a href="{{ path('profile_change_password') }}" class="btn btn-ghost">
-                    <span class="ti ti-lock text-2xl"></span>
-                    Izmena lozinke
-                </a>
             </div>
         </div>
     </div>

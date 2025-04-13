@@ -19,15 +19,32 @@ class UserDonorRepository extends ServiceEntityRepository
 
     public function search(array $criteria, int $page = 1, int $limit = 50): array
     {
-        $qb = $this->createQueryBuilder('u');
+        $qb = $this->createQueryBuilder('ud');
+        $qb->innerJoin('ud.user', 'u')
+            ->andWhere('u.isActive = 1');
 
         if (isset($criteria['isMonthly'])) {
-            $qb->andWhere('u.isMonthly = :isMonthly')
+            $qb->andWhere('ud.isMonthly = :isMonthly')
                 ->setParameter('isMonthly', $criteria['isMonthly']);
         }
 
+        if (!empty($criteria['firstName'])) {
+            $qb->andWhere('u.firstName LIKE :firstName')
+                ->setParameter('firstName', '%'.$criteria['firstName'].'%');
+        }
+
+        if (!empty($criteria['lastName'])) {
+            $qb->andWhere('u.lastName LIKE :lastName')
+                ->setParameter('lastName', '%'.$criteria['lastName'].'%');
+        }
+
+        if (!empty($criteria['email'])) {
+            $qb->andWhere('u.email LIKE :email')
+                ->setParameter('email', '%'.$criteria['email'].'%');
+        }
+
         // Set the sorting
-        $qb->orderBy('u.id', 'DESC');
+        $qb->orderBy('ud.id', 'DESC');
 
         // Apply pagination only if $limit is set and greater than 0
         if ($limit && $limit > 0) {
@@ -45,7 +62,7 @@ class UserDonorRepository extends ServiceEntityRepository
                 'items' => iterator_to_array($paginator),
                 'total' => count($paginator),
                 'current_page' => $page,
-                'total_pages' => ceil(count($paginator) / $limit),
+                'total_pages' => (int) ceil(count($paginator) / $limit),
             ];
         }
 

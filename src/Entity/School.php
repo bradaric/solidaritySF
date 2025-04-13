@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\SchoolRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -36,6 +38,31 @@ class School
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updatedAt = null;
+
+    /**
+     * @var Collection<int, UserDelegateSchool>
+     */
+    #[ORM\OneToMany(targetEntity: UserDelegateSchool::class, mappedBy: 'school')]
+    private Collection $userDelegateSchools;
+
+    /**
+     * @var Collection<int, Educator>
+     */
+    #[ORM\OneToMany(targetEntity: Educator::class, mappedBy: 'school')]
+    private Collection $educators;
+
+    /**
+     * @var Collection<int, UserDelegateRequest>
+     */
+    #[ORM\OneToMany(targetEntity: UserDelegateRequest::class, mappedBy: 'school')]
+    private Collection $userDelegateRequests;
+
+    public function __construct()
+    {
+        $this->userDelegateSchools = new ArrayCollection();
+        $this->educators = new ArrayCollection();
+        $this->userDelegateRequests = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -103,5 +130,29 @@ class School
         $this->updatedAt = new \DateTime();
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, UserDelegateSchool>
+     */
+    public function getUserDelegateSchools(): Collection
+    {
+        return $this->userDelegateSchools;
+    }
+
+    /**
+     * @return Collection<int, Educator>
+     */
+    public function getEducators(): Collection
+    {
+        return $this->educators;
+    }
+
+    /**
+     * @return Collection<int, UserDelegateRequest>
+     */
+    public function getUserDelegateRequests(): Collection
+    {
+        return $this->userDelegateRequests;
     }
 }

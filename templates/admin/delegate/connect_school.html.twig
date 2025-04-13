@@ -1,0 +1,73 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block content %}
+    {{ include('flashes.html.twig') }}
+
+    <div class="mb-8">
+        <span class="ti ti-user-cog text-2xl"></span>
+        {{ user.fullName }} ({{ user.email }})
+    </div>
+
+    <div>
+        {% form_theme form 'form.html.twig' %}
+        {{ form(form) }}
+    </div>
+
+    <div class="divider my-6"></div>
+
+    {% if user.userDelegateSchools is empty %}
+        <div class="alert alert-info ">
+            <span class="ti ti-info-circle text-2xl"></span>
+            <span>Delegat trenutno nema ni jednu povezanu školu</span>
+        </div>
+    {% else %}
+        <div class="overflow-x-auto">
+            <div class="text-gray-500 mb-2">
+                Ukupno povezanih škola: <span class="font-bold">{{ user.userDelegateSchools|length }}</span>
+            </div>
+
+            <table class="table rounded-xl border border-base-200">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th>
+                            <span class="ti ti-building text-xl"></span>
+                            Naziv
+                        </th>
+                        <th>
+                            <span class="ti ti-building-community text-xl"></span>
+                            Grad
+                        </th>
+                        <th>
+                            <span class="ti ti-building-cog text-xl"></span>
+                            Tip škole
+                        </th>
+                        <th>
+                            <span class="ti ti-calendar-event text-xl"></span>
+                            Datum
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for userDelegateSchool in user.userDelegateSchools %}
+                    <tr class="hover:bg-gray-100">
+                        <td>{{ userDelegateSchool.school.name }}</td>
+                        <td>{{ userDelegateSchool.school.city.name }}</td>
+                        <td>{{ userDelegateSchool.school.type.name }}</td>
+                        <td>
+                            {{ userDelegateSchool.createdAt|date('d.m.Y.') }}
+                        </td>
+                        <td>
+                            <div class="flex gap-2 justify-end">
+                                <a href="{{ path('admin_delegate_unconnect_school', { 'id': user.id, 'user-delegate-school-id': userDelegateSchool.id }) }}" class="btn btn-error btn-sm flex tooltip" data-tip="Odveži">
+                                    <span class="ti ti-link-off text-xl"></span>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+{% endblock %}

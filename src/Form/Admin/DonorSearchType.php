@@ -5,6 +5,7 @@ namespace App\Form\Admin;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -14,6 +15,18 @@ class DonorSearchType extends AbstractType
     {
         $builder
             ->setMethod('GET')
+            ->add('firstName', TextType::class, [
+                'required' => false,
+                'label' => 'Ime',
+            ])
+            ->add('lastName', TextType::class, [
+                'required' => false,
+                'label' => 'Prezime',
+            ])
+            ->add('email', TextType::class, [
+                'required' => false,
+                'label' => 'Email',
+            ])
             ->add('isMonthly', ChoiceType::class, [
                 'required' => false,
                 'label' => 'Mesečna podrška',

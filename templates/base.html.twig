@@ -1,3 +1,4 @@
+{% from "macro/navigation.html.twig" import nav_links %}
 <!DOCTYPE html>
 <html lang="sr">
     <head>
@@ -22,6 +23,7 @@
         <meta property="twitter:description" content="Direktna finansijska pomoć nastavnicima u obustavi rada. Pridruži se IT Srbiji u inicijativi solidarnosti!">
         <meta property="twitter:image" content="{{ absolute_url(asset('image/social.webp')) }}">
 
+        <link type="text/plain" rel="author" href="{{ asset('humans.txt') }}" />
         <link rel="canonical" href="{{ app.request.uri }}">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,35 +43,27 @@
             <div class="navbar bg-base-100 shadow-sm px-10 py-5">
                 <div class="flex-1 align-middle">
                     <a href="{{ path('home') }}">
-                        <img src="{{ asset('image/logo.webp') }}" alt="Logo" class="w-12 h-12 rounded-lg">
+                        <img src="{{ asset('image/logo.svg') }}" alt="Logo" class="w-12 h-12 rounded-lg bg-base-100">
                     </a>
                 </div>
 
-                <div class="flex-none">
-                    <ul class="menu menu-horizontal px-1 gap-2 size-xl">
-                        <li>
-                            <a href="{{ path('donor_become') }}" class="link link-primary no-underline">Postani donator</a>
-                        </li>
-
-                        {% if app.user %}
-                            {% if 'ROLE_ADMIN' in app.user.getRoles %}
-                                <li>
-                                    <a href="{{ path('admin_home') }}" class="link link-primary no-underline">Admin Panel</a>
-                                </li>
-                            {% endif %}
-
-                            <li>
-                                <a href="{{ path('profile_edit') }}" class="link link-primary no-underline">Profile</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('logout') }}" class="link link-primary no-underline">Odjavi se</a>
-                            </li>
-                        {% else %}
-                            <li>
-                                <a href="{{ path('login') }}" class="link link-primary no-underline">Uloguj se</a>
-                            </li>
-                        {% endif %}
+                <!-- Regular menu items (visible on large screens) -->
+                <div class="navbar-center hidden lg:flex">
+                    <ul class="menu menu-horizontal px-1 gap-3 size-xl">
+                        {{ nav_links('link link-primary no-underline') }}
                     </ul>
+                </div>
+
+                <!-- Burger menu for small screens -->
+                <div class="flex-none lg:hidden">
+                    <div class="dropdown dropdown-end">
+                        <button class="btn btn-ghost btn-circle">
+                            <span class="ti ti-menu-2 text-xl"></span>
+                        </button>
+                        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                            {{ nav_links() }}
+                        </ul>
+                    </div>
                 </div>
             </div>
         {% endblock %}
@@ -79,7 +73,7 @@
         {% block footer %}
             <div class="mt-10 pb-10">
                 <a href="https://itsrbija.org">
-                    <img src="{{ asset('image/logo.webp') }}" alt="IT Srbija logo" class="mx-auto w-12 h-12 rounded-lg">
+                    <img src="{{ asset('image/logo.svg') }}" alt="IT Srbija logo" class="mx-auto w-12 h-12 rounded-lg bg-base-100">
                 </a>
             </div>
         {% endblock %}

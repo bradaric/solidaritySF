@@ -12,61 +12,19 @@
 
                 <div class="divider my-10">Registracija</div>
                 {{ include('flashes.html.twig') }}
-                {{ form_errors(form) }}
 
-                {{ form_start(form) }}
-                    <div class="mb-2">
-                        <label class="input w-full">
-                            {{ form_widget(form.firstName) }}
-                        </label>
-
-                        {{ form_errors(form.firstName) }}
-                    </div>
-                    <div class="mb-2">
-                        <label class="input w-full">
-                            {{ form_widget(form.lastName) }}
-                        </label>
-
-                        {{ form_errors(form.lastName) }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="input w-full">
-                            <span class="ti ti-mail text-2xl opacity-50"></span>
-                            {{ form_widget(form.email, {'attr': {'placeholder': 'Email'}}) }}
-                        </label>
-
-                        {{ form_errors(form.email) }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="input w-full">
-                            <span class="ti ti-lock text-2xl opacity-50"></span>
-                            {{ form_widget(form.rawPassword.first) }}
-                        </label>
-
-                        {{ form_errors(form.rawPassword.first) }}
-                    </div>
-
-                    <div class="mb-2">
-                        <label class="input w-full">
-                            <span class="ti ti-lock text-2xl opacity-50"></span>
-                            {{ form_widget(form.rawPassword.second) }}
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-full">Registrujte se</button>
-                {{ form_end(form) }}
+                {% form_theme form 'form.html.twig' %}
+                {{ form(form) }}
 
                 <div class="divider my-10"></div>
 
                 <div class="text-center">
                     <span class="text-gray-500">Već imate nalog?</span>
-                    <a href="{{ path('login') }}" class="link link-primary no-underline">Ulogujte se</a>
+                    <a href="{{ path('login') }}" class="link link-primary link-hover">Ulogujte se</a>
                 </div>
 
                 <div class="mt-2 text-center text-gray-500">
-                    <a href="{{ path('home') }}" class="link link-primary no-underline">
+                    <a href="{{ path('home') }}" class="link link-primary link-hover">
                         Vrati se na početnu
                     </a>
                 </div>

@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\DataFixtures\Data\Schools;
 use App\Entity\City;
 use App\Entity\School;
 use App\Entity\SchoolType;
@@ -16,34 +17,52 @@ class SchoolFixtures extends Fixture implements FixtureGroupInterface
     {
     }
 
+    private function determineSchoolType(string $schoolName): string
+    {
+        if (str_contains($schoolName, 'Osnovna škola')) {
+            return 'Osnovna škola';
+        }
+        if (str_contains($schoolName, 'Gimnazija')) {
+            return 'Gimnazija';
+        }
+
+        return 'Srednja stručna škola';
+    }
+
     public function load(ObjectManager $manager): void
     {
-        $schools = [[
-            'name' => 'Medicinska škola Beograd',
-            'city' => 'Beograd',
-            'type' => 'Srednja škola'
-        ], [
-            'name' => 'Osnovna škola Oslobodioci Beograda',
-            'city' => 'Beograd',
-            'type' => 'Osnovna škola'
-        ]];
+        $schoolsData = ['schoolsMap' => Schools::getSchoolsMap()];
 
-        foreach ($schools as $schoolData) {
-            $school = new School();
-            $school->setName($schoolData['name']);
+        foreach ($schoolsData['schoolsMap'] as $cityName => $schools) {
+            $city = $this->entityManager->getRepository(City::class)->findOneBy(['name' => $cityName]);
 
-            $city = $this->entityManager->getRepository(City::class)->findOneBy(['name' => $schoolData['city']]);
-            $school->setCity($city);
+            if (!$city) {
+                continue;
+            }
 
-            $type = $this->entityManager->getRepository(SchoolType::class)->findOneBy(['name' => $schoolData['type']]);
-            $school->setType($type);
+            foreach ($schools as $schoolName) {
+                $school = new School();
+                $school->setName($schoolName);
+                $school->setCity($city);
 
-            $manager->persist($school);
+                $typeName = $this->determineSchoolType($schoolName);
+                $type = $this->entityManager->getRepository(SchoolType::class)->findOneBy(['name' => $typeName]);
+
+                if (!$type) {
+                    continue;
+                }
+
+                $school->setType($type);
+                $manager->persist($school);
+            }
         }
 
         $manager->flush();
     }
 
+    /**
+     * @return int[]
+     */
     public static function getGroups(): array
     {
         return [2];

@@ -11,17 +11,13 @@
             Ukupno rezultata: <span class="font-bold">{{ users.total }}</span>
         </div>
 
-        <table class="table rounded-box border border-base-200">
-            <thead>
-                <tr class="bg-base-200 text-base-content">
+        <table class="table rounded-xl border border-base-200">
+            <thead class="bg-gray-100">
+                <tr>
                     <th></th>
                     <th>
                         <span class="ti ti-user text-xl"></span>
                         Ime
-                    </th>
-                    <th>
-                        <span class="ti ti-mail text-xl"></span>
-                        Email
                     </th>
                     <th>
                         <span class="ti ti-military-rank text-xl"></span>
@@ -38,10 +34,14 @@
             </thead>
             <tbody>
                 {% for user in users.items %}
-                    <tr class="hover:bg-base-200">
+                    <tr class="hover:bg-gray-100">
                         <th>{{ user.id }}</th>
-                        <td>{{ user.fullName }}</td>
-                        <td>{{ user.email }}</td>
+                        <td>
+                            <div>{{ user.fullName ?? user.username }}</div>
+                            <a href="{{ path('admin_user_edit', { 'id': user.id }) }}" class="link link-primary link-hover">
+                                {{ user.email }}
+                            </a>
+                        </td>
                         <td>{{ user.getRoles|roleTranslate }}</td>
                         <td>
                             {{ user.createdAt|date('d.m.Y.') }}
@@ -77,6 +77,6 @@
         </table>
     </div>
 
-    {% import "macros/pagination.twig" as pagination %}
-    {{ pagination.navigation('admin_user_list', users.total_pages, users.current_page) }}
+    {% import "macro.twig" as macro %}
+    {{ macro.pagination('admin_user_list', users.total_pages, users.current_page) }}
 {% endblock %}

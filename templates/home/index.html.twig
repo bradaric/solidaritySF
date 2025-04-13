@@ -14,8 +14,9 @@
 
         {% block supportButton %}
             <div class="text-center">
-                <a href="{{ path('donor_become') }}" class="btn btn-primary btn-xl transition duration-200 hover:scale-105">
-                    Registruj se i podrži
+                <a href="{{ path('donor_subscribe') }}" class="btn btn-primary btn-xl transition duration-200 hover:scale-105">
+                    <span class="ti ti-heart text-2xl"></span>
+                    Postani donator
                 </a>
             </div>
         {% endblock %}
@@ -65,7 +66,7 @@
             </div>
 
             <p class="mt-6 text-gray-500">Sumirani odgovori na najvažnija pitanja. Ne možete da nađete ono što tražite?</p>
-            <p class="text-gray-500">Obratite nam se na naš <a href="#" class="text-primary hover:underline">email</a> ili preko naših društvenih mreža.</p>
+            <p class="text-gray-500">Obratite nam se na naš <a href="mailto:info@mrezasolidarnosti.org" class="text-primary hover:underline">email</a> ili preko naših društvenih mreža.</p>
         </header>
 
         <div class="space-y-8 my-10">

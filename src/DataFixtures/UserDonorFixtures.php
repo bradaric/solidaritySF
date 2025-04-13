@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\DataFixtures\Data\Amounts;
 use App\Entity\User;
 use App\Entity\UserDonor;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -15,28 +16,43 @@ class UserDonorFixtures extends Fixture implements FixtureGroupInterface
     {
     }
 
+    private array $comments = [
+        'Podrška za prosvetare!',
+        'Svaka čast na hrabrosti!',
+        'Solidarnost je naša snaga!',
+        'Zajedno smo jači!',
+        null,
+    ];
+
     public function load(ObjectManager $manager): void
     {
-        $users = [[
-            'email' => 'korisnik@gmail.com',
-            'isMonthly' => true,
-            'amount' => 5000,
-            'comment' => 'Podrzka za prosvetare!',
-        ], [
-            'email' => 'admin@gmail.com',
-            'isMonthly' => false,
-            'amount' => 3000,
-            'comment' => null,
-        ]];
+        // Set fixed seed for deterministic results
+        mt_srand(1234);
 
-        foreach ($users as $userData) {
-            $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $userData['email']]);
+        // Get all regular users (not admin, not delegate)
+        $users = $this->entityManager->getRepository(User::class)
+            ->createQueryBuilder('u')
+            ->where('u.roles LIKE :role')
+            ->setParameter('role', '%ROLE_USER%')
+            ->andWhere('u.roles NOT LIKE :admin')
+            ->andWhere('u.roles NOT LIKE :delegate')
+            ->setParameter('admin', '%ROLE_ADMIN%')
+            ->setParameter('delegate', '%ROLE_DELEGATE%')
+            ->getQuery()
+            ->getResult();
 
+        // Randomly select 70% of users
+        shuffle($users);
+        $selectedCount = (int) ceil(count($users) * 0.7);
+        $selectedUsers = array_slice($users, 0, $selectedCount);
+
+        foreach ($selectedUsers as $user) {
             $userDonor = new UserDonor();
             $userDonor->setUser($user);
-            $userDonor->setIsMonthly($userData['isMonthly']);
-            $userDonor->setAmount($userData['amount']);
-            $userDonor->setComment($userData['comment']);
+            $userDonor->setIsMonthly((bool) mt_rand(0, 1));
+            // Generate amount between 500 and 100000, clustering around 5000
+            $userDonor->setAmount(Amounts::generate(5000, null, 500, 100000));
+            $userDonor->setComment($this->comments[array_rand($this->comments)]);
 
             $manager->persist($userDonor);
         }
@@ -44,8 +60,11 @@ class UserDonorFixtures extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
+    /**
+     * @return int[]
+     */
     public static function getGroups(): array
     {
-        return [2];
+        return [4]; // After UserDelegateSchool fixtures to exclude confirmed delegates
     }
 }

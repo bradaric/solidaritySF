@@ -1,47 +1,50 @@
-[![Symfony Tests](../../actions/workflows/symfony.yml/badge.svg)](../../actions/workflows/symfony.yml)
-
 # Mreža Solidarnosti
-Mreža solidarnosti je inicijativa IT Srbije za direktnu finansijsku podršku nastavnicima i vannastavnom osoblju čija je plata umanjena zbog obustave rada.
 
-![image.jpg](public/image/readme.png)
+Mreža solidarnosti je inicijativa [IT Srbija](https://itsrbija.org/) za direktnu finansijsku podršku nastavnicima i vannastavnom osoblju čija je plata umanjena zbog obustave rada.
 
-## Tehnologije
+[![build](../../actions/workflows/build.yml/badge.svg)](../../actions/workflows/build.yml)
 
-- [PHP 8.3](https://www.php.net/)
-- [NGINX](https://nginx.org/)
-- [MySQL 8](https://www.mysql.com/)
-- [Docker](https://www.docker.com/)
-- [Symfony 6.4](https://symfony.com/)
-- [TailwindCSS 4](https://tailwindcss.com/)
-- [daisyUI 4](https://daisyui.com/)
-- [Tabler Icons](https://tabler.io/icons)
+![GitHub stars](https://img.shields.io/github/stars/IT-Srbija-Org/solidaritySF?style=social)
+![GitHub forks](https://img.shields.io/github/forks/IT-Srbija-Org/solidaritySF?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/IT-Srbija-Org/solidaritySF?style=social)
+![GitHub repo size](https://img.shields.io/github/repo-size/IT-Srbija-Org/solidaritySF)
+![GitHub language count](https://img.shields.io/github/languages/count/IT-Srbija-Org/solidaritySF)
+![GitHub top language](https://img.shields.io/github/languages/top/IT-Srbija-Org/solidaritySF)
+![GitHub last commit](https://img.shields.io/github/last-commit/IT-Srbija-Org/solidaritySF?color=red)
 
----
+## ❤️ Zajednica
 
-## Instalacija projekta
+[IT Srbija](https://itsrbija.org/) okuplja profesionalce iz svih oblasti informacionih tehnologija s ciljem umrežavanja, deljenja znanja i jačanja solidarnosti u IT industriji. Naša misija je povezivanje stručnjaka, podrška zajednici i kreiranje prilika za profesionalni razvoj.
 
-Pratite sledeće korake kako biste pokrenuli projekat lokalno:
+## 🚀 Instalacija
 
-1. Klonirajte projekat
+Pre pokretanja projekta, potrebno je da na vašem računaru bude instaliran [Docker](https://www.docker.com/). Kompletna instalacija i inicijalna konfiguracija se vrši automatski pokretanjem sledeće komande:
+
 ```bash
-$ git clone https://github.com/IT-Srbija-Org/solidaritySF; 
-cd solidaritySF;
+bash ./configureProject.sh
 ```
 
-2. Pokrenite skriptu za konfiguraciju
-```bash
-$ ./configureProject.sh
-```
+Projekat će biti inicijalno podignut sa svim test podacima na adresi [localhost:1000](http://localhost:1000). Aplikacija koristi [passwordless](https://symfony.com/doc/6.4/security/login_link.html) autentifikaciju, tako da se umesto lozinke pri logovanju korisniku šalje link za prijavu na njegovu email adrese.
 
-3. Otvorite URL adresu u pretraživaču: http://localhost:1000
+| Email              | Privilegije  |
+|--------------------|--------------|
+| korisnik@gmail.com | ROLE_USER    |
+| delegat@gmail.com  | ROLE_DELEGAT |
+| admin@gmail.com    | ROLE_ADMIN   |
 
----
+Nakon unosa email adrese prilikom logovanja, link za prijavu će biti dostupan na adresi [localhost:1002](http://localhost:1002)
+([Mailcatcher](https://mailcatcher.me/) service koji hvata sve email poruke u razvojnom okruženju).
 
-## Test korisnici
+## 📫 Imate pitanje?
 
-Test korisnici se automatski kreiraju pomoću [DoctrineFixturesBundle](https://symfony.com/bundles/DoctrineFixturesBundle) tokom pokretanja skripte za konfiguraciju.
+Sva pitanja nam možete postaviti na zvanicnom [Discord](https://discord.gg/it-srbija) serveru.
 
-| Email              | Lozinka   | Privilegije |
-|--------------------|-----------|-------------|
-| korisnik@gmail.com | 12345678  | ROLE_USER   |
-| admin@gmail.com    | 12345678  | ROLE_ADMIN  |
+## 🐞 Pronašli ste problem?
+
+Slobodno napravite novi [Issue](https://github.com/IT-Srbija-Org/solidaritySF/issues) sa odgovarajućim naslovom i opisom. Ako ste već pronašli rešenje za problem, **slobodno otvorite [pull request](https://github.com/IT-Srbija-Org/solidaritySF/pulls)**.
+
+## ❤️ Hvala!
+
+<a href = "https://github.com/IT-Srbija-Org/solidaritySF/graphs/contributors">
+    <img src = "https://contrib.rocks/image?repo=IT-Srbija-Org/solidaritySF"/>
+</a>
