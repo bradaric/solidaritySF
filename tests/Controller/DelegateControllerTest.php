@@ -147,6 +147,283 @@ class DelegateControllerTest extends WebTestCase
     }
     
     /**
+     * Test when a user with ROLE_DELEGATE visits the request page
+     */
+    public function testRequestAccessForExistingDelegate(): void
+    {
+        $this->loginAsDelegate();
+        $this->client->request('GET', '/postani-delegat');
+        
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        // Should show approval template rather than the form
+        $this->assertSelectorExists('.card-body');
+    }
+    
+    /**
+     * Test the edit educator page
+     */
+    public function testEditEducator(): void
+    {
+        // First create the city and school
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        
+        // Create city if it doesn't exist
+        $cityRepository = $entityManager->getRepository('App\Entity\City');
+        $city = $cityRepository->findOneBy([]);
+        if (!$city) {
+            $city = new \App\Entity\City();
+            $city->setName('Test City');
+            $entityManager->persist($city);
+            $entityManager->flush();
+        }
+        
+        // Create school type if it doesn't exist
+        $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
+        $schoolType = $schoolTypeRepository->findOneBy([]);
+        if (!$schoolType) {
+            $schoolType = new \App\Entity\SchoolType();
+            $schoolType->setName('Test School Type');
+            $entityManager->persist($schoolType);
+            $entityManager->flush();
+        }
+        
+        // Create test school
+        $school = new \App\Entity\School();
+        $school->setName('Test School ' . uniqid());
+        $school->setCity($city);
+        $school->setType($schoolType);
+        $entityManager->persist($school);
+        $entityManager->flush();
+        
+        // Get delegate user
+        $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        
+        // Assign school to delegate
+        $delegateSchool = new \App\Entity\UserDelegateSchool();
+        $delegateSchool->setUser($delegate);
+        $delegateSchool->setSchool($school);
+        $entityManager->persist($delegateSchool);
+        $entityManager->flush();
+        
+        // Login as delegate
+        $this->client->loginUser($delegate);
+        
+        // Create educator in this school
+        $educator = new \App\Entity\Educator();
+        $educator->setName('Test Educator');
+        $educator->setSchool($school);
+        $educator->setAmount(50000);
+        $educator->setAccountNumber('265104031000361092');
+        $educator->setCreatedBy($delegate);
+        $entityManager->persist($educator);
+        $entityManager->flush();
+        
+        // Request the edit page
+        $this->client->request('GET', '/osteceni/' . $educator->getId() . '/izmeni-podatke');
+        
+        // Verify response
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        $this->assertSelectorExists('form');
+        $this->assertSelectorExists('input[name="educator_edit[name]"]');
+    }
+    
+    /**
+     * Test the delete educator confirmation page
+     */
+    public function testDeleteEducatorConfirmation(): void
+    {
+        // First create the city and school
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        
+        // Create city if it doesn't exist
+        $cityRepository = $entityManager->getRepository('App\Entity\City');
+        $city = $cityRepository->findOneBy([]);
+        if (!$city) {
+            $city = new \App\Entity\City();
+            $city->setName('Test City');
+            $entityManager->persist($city);
+            $entityManager->flush();
+        }
+        
+        // Create school type if it doesn't exist
+        $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
+        $schoolType = $schoolTypeRepository->findOneBy([]);
+        if (!$schoolType) {
+            $schoolType = new \App\Entity\SchoolType();
+            $schoolType->setName('Test School Type');
+            $entityManager->persist($schoolType);
+            $entityManager->flush();
+        }
+        
+        // Create test school
+        $school = new \App\Entity\School();
+        $school->setName('Test Delete School ' . uniqid());
+        $school->setCity($city);
+        $school->setType($schoolType);
+        $entityManager->persist($school);
+        $entityManager->flush();
+        
+        // Get delegate user
+        $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        
+        // Assign school to delegate
+        $delegateSchool = new \App\Entity\UserDelegateSchool();
+        $delegateSchool->setUser($delegate);
+        $delegateSchool->setSchool($school);
+        $entityManager->persist($delegateSchool);
+        $entityManager->flush();
+        
+        // Login as delegate
+        $this->client->loginUser($delegate);
+        
+        // Create educator in this school
+        $educator = new \App\Entity\Educator();
+        $educator->setName('Test Delete Educator');
+        $educator->setSchool($school);
+        $educator->setAmount(50000);
+        $educator->setAccountNumber('265104031000361098');
+        $educator->setCreatedBy($delegate);
+        $entityManager->persist($educator);
+        $entityManager->flush();
+        
+        // Request the delete page
+        $this->client->request('GET', '/osteceni/' . $educator->getId() . '/brisanje');
+        
+        // Verify response
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        $this->assertSelectorExists('form');
+        $this->assertSelectorExists('h2.card-title');
+    }
+    
+    /**
+     * Test that a delegate cannot edit/delete educators from schools they don't have access to
+     */
+    public function testCannotAccessOtherSchoolEducator(): void
+    {
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        
+        // Create a school not assigned to our delegate
+        $cityRepository = $entityManager->getRepository('App\Entity\City');
+        $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
+        
+        // Get or create a city
+        $city = $cityRepository->findOneBy([]);
+        if (!$city) {
+            $city = new \App\Entity\City();
+            $city->setName('Test City');
+            $entityManager->persist($city);
+        }
+        
+        // Get or create a school type
+        $schoolType = $schoolTypeRepository->findOneBy([]);
+        if (!$schoolType) {
+            $schoolType = new \App\Entity\SchoolType();
+            $schoolType->setName('Test School Type');
+            $entityManager->persist($schoolType);
+            $entityManager->flush(); // Flush to save these entities first
+        }
+        
+        // Create a new school that's NOT linked to our delegate
+        $school = new \App\Entity\School();
+        $school->setName('Other School');
+        $school->setCity($city);
+        $school->setType($schoolType);
+        $entityManager->persist($school);
+        
+        // Create educator in this school
+        $educator = new \App\Entity\Educator();
+        $educator->setName('Other Educator');
+        $educator->setSchool($school);
+        $educator->setAmount(50000);
+        $educator->setAccountNumber('265104031000361092');
+        // Find an admin user for creator
+        $adminUser = $this->userRepository->findOneBy(['email' => 'admin@gmail.com']);
+        if (!$adminUser) {
+            // If no admin user is found, use the delegate user instead
+            $adminUser = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        }
+        $educator->setCreatedBy($adminUser);
+        $entityManager->persist($educator);
+        $entityManager->flush();
+        
+        // Now try to access this educator
+        $this->loginAsDelegate();
+        $this->client->request('GET', '/osteceni/' . $educator->getId() . '/izmeni-podatke');
+        
+        // Should get an access denied error
+        $this->assertEquals(Response::HTTP_FORBIDDEN, $this->client->getResponse()->getStatusCode());
+    }
+    
+    /**
+     * Helper method to create an educator for the delegate
+     */
+    private function createEducatorForDelegate()
+    {
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        
+        // Make sure delegate has a school
+        $this->addSchoolToDelegate();
+        
+        $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        
+        // Get the school assigned to this delegate (should exist after addSchoolToDelegate)
+        $delegateSchool = $delegate->getUserDelegateSchools()->first();
+        if (!$delegateSchool) {
+            // Create a new school and assign it directly
+            $cityRepository = $entityManager->getRepository('App\Entity\City');
+            $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
+            
+            // Get or create a city
+            $city = $cityRepository->findOneBy([]);
+            if (!$city) {
+                $city = new \App\Entity\City();
+                $city->setName('Test City');
+                $entityManager->persist($city);
+            }
+            
+            // Get or create a school type
+            $schoolType = $schoolTypeRepository->findOneBy([]);
+            if (!$schoolType) {
+                $schoolType = new \App\Entity\SchoolType();
+                $schoolType->setName('Test School Type');
+                $entityManager->persist($schoolType);
+                $entityManager->flush();
+            }
+            
+            // Create a new school for the delegate
+            $school = new \App\Entity\School();
+            $school->setName('Delegate Test School');
+            $school->setCity($city);
+            $school->setType($schoolType);
+            $entityManager->persist($school);
+            
+            // Create UserDelegateSchool connection
+            $delegateSchool = new \App\Entity\UserDelegateSchool();
+            $delegateSchool->setUser($delegate);
+            $delegateSchool->setSchool($school);
+            $entityManager->persist($delegateSchool);
+            $entityManager->flush();
+        }
+        
+        // Create an educator in this school
+        $educator = new \App\Entity\Educator();
+        $educator->setName('Test Educator');
+        $educator->setSchool($delegateSchool->getSchool());
+        $educator->setAmount(50000);
+        $educator->setAccountNumber('265104031000361092');
+        $educator->setCreatedBy($delegate);
+        
+        $entityManager->persist($educator);
+        $entityManager->flush();
+        
+        return $educator;
+    }
+    
+    /**
      * Helper to ensure the delegate has a school assigned
      */
     private function addSchoolToDelegate(): void
