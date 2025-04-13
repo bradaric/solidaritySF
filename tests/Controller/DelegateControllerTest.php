@@ -101,4 +101,100 @@ class DelegateControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
         $this->assertSelectorExists('form');
     }
+    
+    /**
+     * Test submitting the new educator form
+     */
+    public function testSubmitNewEducatorForm(): void
+    {
+        // Before testing, ensure our delegate has at least one school
+        $this->addSchoolToDelegate();
+        
+        $this->loginAsDelegate();
+        $crawler = $this->client->request('GET', '/prijavi-ostecenog');
+        
+        $this->assertEquals(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
+        
+        $form = $crawler->selectButton('Sačuvaj')->form();
+        
+        // Get a school ID from the delegate's schools
+        $schoolOptions = $crawler->filter('select[name="educator_edit[school]"] option')->extract(['value']);
+        $schoolId = !empty($schoolOptions[1]) ? $schoolOptions[1] : null;
+        
+        if (!$schoolId) {
+            $this->markTestSkipped('No school options available for this delegate');
+        }
+        
+        $form['educator_edit[name]'] = 'Test Educator';
+        $form['educator_edit[school]'] = $schoolId;
+        $form['educator_edit[amount]'] = '50000';
+        $form['educator_edit[accountNumber]'] = '265104031000361092';
+
+        $this->client->submit($form);
+        
+        // If there's a validation error, the form will be redisplayed
+        if ($this->client->getResponse()->getStatusCode() === Response::HTTP_OK) {
+            $html = $this->client->getResponse()->getContent();
+            // Save HTML to file for debugging
+            file_put_contents('/tmp/form_debug.html', $html);
+            $this->fail('Form submission did not redirect but returned HTTP 200. See /tmp/form_debug.html for details.');
+        }
+        
+        // Check for any redirect (might not be exactly to /osteceni)
+        $this->assertTrue($this->client->getResponse()->isRedirect(), 
+            'Response is not a redirect. Status code: ' . $this->client->getResponse()->getStatusCode());
+        
+        // Follow redirect and check success message
+        $this->client->followRedirect();
+        $this->assertSelectorExists('.alert-success');
+    }
+    
+    /**
+     * Helper to ensure the delegate has a school assigned
+     */
+    private function addSchoolToDelegate(): void
+    {
+        $container = static::getContainer();
+        $entityManager = $container->get('doctrine.orm.entity_manager');
+        
+        // Get the delegate user
+        $delegate = $this->userRepository->findOneBy(['email' => 'delegat@gmail.com']);
+        
+        // Check if delegate already has schools
+        if ($delegate->getUserDelegateSchools()->count() > 0) {
+            return;
+        }
+        
+        // Create a test school if needed
+        // First check for existing school and city
+        $schoolRepository = $entityManager->getRepository('App\Entity\School');
+        $cityRepository = $entityManager->getRepository('App\Entity\City');
+        $schoolTypeRepository = $entityManager->getRepository('App\Entity\SchoolType');
+        
+        $school = $schoolRepository->findOneBy([]);
+        if (!$school) {
+            $city = $cityRepository->findOneBy([]);
+            $schoolType = $schoolTypeRepository->findOneBy([]);
+            
+            if (!$city || !$schoolType) {
+                $this->markTestSkipped('Missing required city or school type fixtures');
+                return;
+            }
+            
+            // Create a new school
+            $school = new \App\Entity\School();
+            $school->setName('Test School');
+            $school->setCity($city);
+            $school->setType($schoolType);
+            $entityManager->persist($school);
+            $entityManager->flush();
+        }
+        
+        // Create UserDelegateSchool connection
+        $delegateSchool = new \App\Entity\UserDelegateSchool();
+        $delegateSchool->setUser($delegate);
+        $delegateSchool->setSchool($school);
+        $entityManager->persist($delegateSchool);
+        $entityManager->flush();
+    }
 }
